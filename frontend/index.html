@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Algorithm News</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 16px; }
+    header { margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; background: #fff; }
+    .title { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
+    .meta { color: #6b7280; font-size: 12px; margin-bottom: 8px; }
+    .summary { font-size: 14px; color: #111827; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
+    input, select { padding: 6px 8px; margin-right: 8px; }
+  </style>
+  <script>
+    async function loadArticles() {
+      const q = document.getElementById('q').value.trim();
+      const url = `/api/articles?limit=50${q ? `&q=${encodeURIComponent(q)}` : ''}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      for (const a of data) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const title = document.createElement('a');
+        title.href = a.url; title.target = '_blank';
+        title.className = 'title'; title.textContent = a.title;
+        const meta = document.createElement('div');
+        const date = a.published_at ? new Date(a.published_at).toLocaleString() : '';
+        meta.className = 'meta'; meta.textContent = `${date}`;
+        const summary = document.createElement('div');
+        summary.className = 'summary'; summary.textContent = a.summary || '';
+        card.appendChild(title);
+        card.appendChild(meta);
+        card.appendChild(summary);
+        grid.appendChild(card);
+      }
+    }
+    window.addEventListener('load', loadArticles);
+  </script>
+  </head>
+  <body>
+    <header>
+      <input id="q" placeholder="搜索标题..." onkeydown="if(event.key==='Enter') loadArticles()" />
+      <button onclick="loadArticles()">搜索</button>
+    </header>
+    <main class="grid" id="grid"></main>
+  </body>
+</html>
+
+
