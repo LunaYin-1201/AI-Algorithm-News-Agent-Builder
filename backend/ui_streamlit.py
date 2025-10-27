@@ -90,11 +90,42 @@ with top:
     with st.sidebar:
         st.subheader("设置")
         base_url = st.text_input("API Base URL", DEFAULT_BASE)
-        admin_token = st.text_input("Admin Token", DEFAULT_TOKEN, type="password")
+        # 登录：记住 Admin Token（可保存到 URL 以便下次打开自动填充）
+        qp = st.query_params
+        if "admin_token" not in st.session_state:
+            if "token" in qp:
+                st.session_state["admin_token"] = qp["token"]
+            elif DEFAULT_TOKEN:
+                st.session_state["admin_token"] = DEFAULT_TOKEN
+            else:
+                st.session_state["admin_token"] = ""
+        with st.expander("登录", expanded=(st.session_state.get("admin_token", "") == "")):
+            _tok = st.text_input("Admin Token", st.session_state.get("admin_token", ""), type="password")
+            _remember = st.checkbox("在本机记住", value=("token" in qp))
+            cols = st.columns(2)
+            with cols[0]:
+                if st.button("保存登录"):
+                    st.session_state["admin_token"] = _tok.strip()
+                    if _remember and st.session_state["admin_token"]:
+                        st.query_params["token"] = st.session_state["admin_token"]
+                    else:
+                        if "token" in st.query_params:
+                            del st.query_params["token"]
+                    st.success("已保存")
+            with cols[1]:
+                if st.button("退出登录"):
+                    st.session_state["admin_token"] = ""
+                    if "token" in st.query_params:
+                        del st.query_params["token"]
+                    st.info("已退出")
+        admin_token = st.session_state.get("admin_token", "")
         st.divider()
         st.subheader("分页")
         limit = st.slider("每页条数", min_value=10, max_value=200, value=50, step=10)
         max_age_days = st.slider("最大天数(刷新时)", min_value=0, max_value=90, value=7, step=1)
+        st.subheader("刷新")
+        auto_refresh = st.checkbox("自动刷新页面", value=False, help="定时刷新以拉取最新列表（不触发抓取）")
+        refresh_secs = st.slider("刷新间隔(秒)", min_value=5, max_value=120, value=20, step=5)
         st.subheader("Hacker News")
         include_hn = st.checkbox("包含 HN", value=True)
         hn_min_points = st.slider("HN 最少分数", min_value=0, max_value=500, value=10, step=5)
@@ -114,6 +145,8 @@ with tab_papers:
     q_p = st.text_input("搜索论文标题", "", key="q_papers")
     # 将抓取按钮上移至列表上方，移除“加载更多论文”
     trigger_refresh_papers = st.button("抓取论文并摘要")
+    if st.button("刷新论文列表"):
+        st.rerun()
     ph_papers = st.empty()
     data_papers = load_papers(base_url, q_p, int(limit), 0)
     render_cards(ph_papers, data_papers)
@@ -126,6 +159,8 @@ with tab_news:
     only_sum = st.checkbox("仅显示已摘要", value=True, key="only_sum_news")
     # 抓取按钮上移至列表上方
     trigger_refresh_news = st.button("抓取资讯并摘要")
+    if st.button("刷新资讯列表"):
+        st.rerun()
     ph_news = st.empty()
     data_news = load_news(base_url, q_n, int(limit), 0, source or None, None, only_sum)
     render_cards(ph_news, data_news)
@@ -167,6 +202,9 @@ with st.container():
                 st.error(f"请求错误: {e}")
 
 with st.container():
+    if auto_refresh:
+        st.experimental_set_query_params(_=str(int(__import__('time').time())))
+        st.experimental_rerun() if False else None
     if 'trigger_refresh_news' in locals() and trigger_refresh_news:
             try:
                 with st.spinner("抓取与摘要进行中..."):

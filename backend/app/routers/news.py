@@ -71,12 +71,17 @@ def refresh_news_stream(
             yield f"data: fetched {len(changed)} items\n\n"
         except Exception as e:
             yield f"data: fetch error: {e}\n\n"
+        collected: list[tuple[str, str, str]] = []
+        for n in (changed or []):
+            collected.append(("News", getattr(n, "title", ""), getattr(n, "url", "")))
         if include_hn and settings.hn_enable:
             try:
                 yield "data: fetching hn...\n\n"
                 terms = [s.strip() for s in (hn_terms or "").split(",") if s.strip()] or None
                 hn_changed = fetch_hn(query_terms=terms, max_age_days=max_age_days, min_points=hn_min_points)
                 yield f"data: fetched hn {len(hn_changed)} items\n\n"
+                for n in (hn_changed or []):
+                    collected.append(("News", getattr(n, "title", ""), getattr(n, "url", "")))
             except Exception as e:
                 yield f"data: hn fetch error: {e}\n\n"
         yield "data: summarizing...\n\n"

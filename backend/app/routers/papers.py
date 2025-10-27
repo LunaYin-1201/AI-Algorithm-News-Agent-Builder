@@ -47,6 +47,7 @@ def refresh_papers_stream(
         yield "data: starting refresh\n\n"
         yield "data: fetching arxiv...\n\n"
         upserts = 0
+        collected: list[tuple[str, str, str]] = []  # (kind, title, url)
         for ev, payload in fetch_arxiv_stream(max_age_days=max_age_days):
             if ev == "feed":
                 yield f"data: feed {payload}\n\n"
@@ -55,6 +56,9 @@ def refresh_papers_stream(
             elif ev == "upsert":
                 upserts += 1
                 yield f"data: fetched #{upserts}: {payload[:80]}\n\n"
+                # Note: fetch_arxiv_stream currently yields only title; URL is not returned.
+                # We keep title-only push for now to avoid extra lookups.
+                collected.append(("Paper", payload, ""))
             elif ev == "error":
                 yield f"data: fetch error: {payload}\n\n"
         yield f"data: fetched total {upserts}\n\n"

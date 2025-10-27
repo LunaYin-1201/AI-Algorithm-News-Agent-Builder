@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     hn_query_terms: Optional[str] = None
     hn_min_points: int = 10
 
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
 
