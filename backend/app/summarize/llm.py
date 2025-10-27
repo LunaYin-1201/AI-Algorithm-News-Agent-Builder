@@ -20,7 +20,7 @@ async def _chat(prompt: str, timeout: float = 15.0) -> Optional[str]:
     api_key = None
 
     # Choose model (support Ollama by defaulting to llama3.1:8b on local URLs)
-    model_name = settings.llm_model or "llama3.1:8b"
+    model_name = settings.llm_model or "qwen2.5:7b"
 
     headers = {"Content-Type": "application/json"}
     payload = {
@@ -56,6 +56,14 @@ def summarize_with_llm_sync(title: str, description: Optional[str]) -> Optional[
     try:
         res = anyio.run(_inner)
         return res if res else None
+    except Exception:
+        return None
+
+
+async def summarize_with_llm_async(title: str, description: Optional[str]) -> Optional[str]:
+    prompt = SUMMARY_PROMPT.format(title=title, description=description or "")
+    try:
+        return await _chat(prompt)
     except Exception:
         return None
 

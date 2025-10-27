@@ -5,49 +5,248 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AI Algorithm News</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 16px; }
-    header { margin-bottom: 16px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
-    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; background: #fff; }
-    .title { font-size: 16px; font-weight: 600; margin: 0 0 8px; }
-    .meta { color: #6b7280; font-size: 12px; margin-bottom: 8px; }
-    .summary { font-size: 14px; color: #111827; white-space: pre-wrap; word-break: break-word; line-height: 1.5; }
-    input, select { padding: 6px 8px; margin-right: 8px; }
-  </style>
-  <script>
-    async function loadArticles() {
-      const q = document.getElementById('q').value.trim();
-      const url = `/api/articles?limit=50${q ? `&q=${encodeURIComponent(q)}` : ''}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      const grid = document.getElementById('grid');
-      grid.innerHTML = '';
-      for (const a of data) {
-        const card = document.createElement('div');
-        card.className = 'card';
-        const title = document.createElement('a');
-        title.href = a.url; title.target = '_blank';
-        title.className = 'title'; title.textContent = a.title;
-        const meta = document.createElement('div');
-        const date = a.published_at ? new Date(a.published_at).toLocaleString() : '';
-        meta.className = 'meta'; meta.textContent = `${date}`;
-        const summary = document.createElement('div');
-        summary.className = 'summary'; summary.textContent = a.summary || '';
-        card.appendChild(title);
-        card.appendChild(meta);
-        card.appendChild(summary);
-        grid.appendChild(card);
+    :root {
+      --bg: #ffffff;
+      --card-bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --chip-bg: #eff6ff;
+      --chip-text: #1d4ed8;
+      --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b1020;
+        --card-bg: #121934;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --border: #1f2937;
+        --primary: #60a5fa;
+        --chip-bg: #172554;
+        --chip-text: #93c5fd;
+        --shadow: 0 1px 2px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.4);
       }
     }
-    window.addEventListener('load', loadArticles);
+    html[data-theme="light"] {
+      --bg: #ffffff;
+      --card-bg: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #2563eb;
+      --chip-bg: #eff6ff;
+      --chip-text: #1d4ed8;
+      --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
+    }
+    html[data-theme="dark"] {
+      --bg: #0b1020;
+      --card-bg: #121934;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --primary: #60a5fa;
+      --chip-bg: #172554;
+      --chip-text: #93c5fd;
+      --shadow: 0 1px 2px rgba(0,0,0,0.5), 0 1px 3px rgba(0,0,0,0.4);
+    }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 0; background: var(--bg); color: var(--text); }
+    header { position: sticky; top: 0; z-index: 10; background: var(--bg); border-bottom: 1px solid var(--border); }
+    .bar { display: flex; gap: 8px; align-items: center; padding: 12px 16px; max-width: 1200px; margin: 0 auto; }
+    .brand { font-weight: 700; margin-right: 8px; }
+    .spacer { flex: 1; }
+    input, select { padding: 8px 10px; border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 8px; }
+    input::placeholder { color: var(--muted); }
+    button { padding: 8px 12px; border: 1px solid var(--border); background: transparent; color: var(--text); border-radius: 8px; cursor: pointer; }
+    button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    main { max-width: 1200px; margin: 16px auto; padding: 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+    .card { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: var(--card-bg); box-shadow: var(--shadow); }
+    .title { font-size: 16px; font-weight: 700; margin: 0 0 8px; color: var(--text); text-decoration: none; }
+    .title:hover { text-decoration: underline; }
+    .meta { color: var(--muted); font-size: 12px; margin-bottom: 8px; display: flex; gap: 8px; align-items: center; }
+    .chip { padding: 2px 6px; border-radius: 999px; background: var(--chip-bg); color: var(--chip-text); font-weight: 600; font-size: 11px; border: 1px solid var(--border); cursor: pointer; }
+    .summary { font-size: 14px; color: var(--text); white-space: pre-wrap; word-break: break-word; line-height: 1.55; }
+    .toolbar { display: flex; gap: 8px; align-items: center; }
+    .footer { display: flex; justify-content: center; gap: 8px; margin: 16px 0; }
+    .count { color: var(--muted); font-size: 12px; margin-left: 4px; }
+    .state { text-align: center; color: var(--muted); padding: 32px 0; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  </style>
+  <script>
+    let state = {
+      q: "",
+      source: "",
+      limit: 50,
+      offset: 0,
+      lastCount: 0
+    };
+
+    function getTheme() {
+      return localStorage.getItem('theme');
+    }
+    function applyTheme(theme) {
+      if (theme) document.documentElement.setAttribute('data-theme', theme);
+    }
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    function setLoading(isLoading, message = "加载中...") {
+      const stateEl = document.getElementById('state');
+      if (isLoading) {
+        stateEl.innerHTML = `<div class="state">${message}</div>`;
+      } else {
+        stateEl.innerHTML = "";
+      }
+    }
+
+    function setError(message) {
+      const stateEl = document.getElementById('state');
+      stateEl.innerHTML = `<div class="state">${message}</div>`;
+    }
+
+    async function loadSources() {
+      try {
+        const res = await fetch('/api/articles/sources');
+        if (!res.ok) return; // optional
+        const sources = await res.json();
+        const sel = document.getElementById('source');
+        // keep the first "全部来源" option
+        for (const s of sources) {
+          const opt = document.createElement('option');
+          opt.value = s;
+          opt.textContent = s;
+          sel.appendChild(opt);
+        }
+      } catch (e) {
+        // ignore silently
+      }
+    }
+
+    function updatePager() {
+      document.getElementById('prev').disabled = state.offset <= 0;
+      document.getElementById('next').disabled = state.lastCount < state.limit;
+      document.getElementById('count').textContent = state.lastCount ? `本页 ${state.lastCount} 条` : '';
+    }
+
+    async function loadArticles({reset=false} = {}) {
+      if (reset) state.offset = 0;
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      setLoading(true);
+      const params = new URLSearchParams();
+      params.set('limit', String(state.limit));
+      params.set('offset', String(state.offset));
+      if (state.q) params.set('q', state.q);
+      if (state.source) params.set('source', state.source);
+      try {
+        const res = await fetch(`/api/articles?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        setLoading(false);
+        if (!Array.isArray(data) || data.length === 0) {
+          state.lastCount = 0;
+          updatePager();
+          setError('没有数据');
+          return;
+        }
+        state.lastCount = data.length;
+        for (const a of data) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const title = document.createElement('a');
+          title.href = a.url; title.target = '_blank';
+          title.className = 'title'; title.textContent = a.title || '(无标题)';
+          const meta = document.createElement('div');
+          const date = a.published_at ? new Date(a.published_at).toLocaleString() : '';
+          const srcChip = document.createElement('span');
+          srcChip.className = 'chip';
+          srcChip.textContent = a.source || '未知来源';
+          srcChip.title = '点击按来源筛选';
+          srcChip.onclick = () => { document.getElementById('source').value = a.source || ''; state.source = a.source || ''; loadArticles({reset:true}); };
+          meta.className = 'meta';
+          const dateSpan = document.createElement('span');
+          dateSpan.textContent = date;
+          meta.appendChild(srcChip);
+          if (date) meta.appendChild(dateSpan);
+          const summary = document.createElement('div');
+          summary.className = 'summary';
+          summary.textContent = (a.summary || a.description || '').trim();
+          card.appendChild(title);
+          card.appendChild(meta);
+          card.appendChild(summary);
+          grid.appendChild(card);
+        }
+        updatePager();
+      } catch (e) {
+        setLoading(false);
+        setError('加载失败：' + e.message);
+      }
+    }
+
+    function wireEvents() {
+      const q = document.getElementById('q');
+      const source = document.getElementById('source');
+      const limit = document.getElementById('limit');
+      const btnSearch = document.getElementById('btnSearch');
+      const btnTheme = document.getElementById('btnTheme');
+      const btnPrev = document.getElementById('prev');
+      const btnNext = document.getElementById('next');
+      const btnReset = document.getElementById('reset');
+
+      q.addEventListener('keydown', (e) => { if (e.key === 'Enter') { state.q = q.value.trim(); loadArticles({reset:true}); }});
+      btnSearch.addEventListener('click', () => { state.q = q.value.trim(); loadArticles({reset:true}); });
+      source.addEventListener('change', () => { state.source = source.value.trim(); loadArticles({reset:true}); });
+      limit.addEventListener('change', () => { state.limit = parseInt(limit.value, 10) || 50; loadArticles({reset:true}); });
+      btnPrev.addEventListener('click', () => { if (state.offset > 0) { state.offset = Math.max(0, state.offset - state.limit); loadArticles(); }});
+      btnNext.addEventListener('click', () => { if (state.lastCount >= state.limit) { state.offset += state.limit; loadArticles(); }});
+      btnTheme.addEventListener('click', toggleTheme);
+      btnReset.addEventListener('click', () => { q.value = ''; source.value=''; state.q=''; state.source=''; loadArticles({reset:true}); });
+    }
+
+    window.addEventListener('load', () => {
+      applyTheme(getTheme());
+      wireEvents();
+      loadSources().then(() => loadArticles({reset:true}));
+    });
   </script>
   </head>
   <body>
     <header>
-      <input id="q" placeholder="搜索标题..." onkeydown="if(event.key==='Enter') loadArticles()" />
-      <button onclick="loadArticles()">搜索</button>
+      <div class="bar">
+        <div class="brand">AI Algorithm News</div>
+        <input id="q" placeholder="搜索标题..." />
+        <select id="source" title="来源">
+          <option value="">全部来源</option>
+          <!-- 用户可直接输入来源值，我们也提供常规下拉为空，由卡片点击填充 -->
+        </select>
+        <select id="limit" title="每页条数">
+          <option value="20">20</option>
+          <option value="50" selected>50</option>
+          <option value="100">100</option>
+        </select>
+        <button id="btnSearch" class="primary">搜索</button>
+        <button id="reset">重置</button>
+        <div class="spacer"></div>
+        <div class="toolbar">
+          <span id="count" class="count"></span>
+          <button id="prev">上一页</button>
+          <button id="next">下一页</button>
+          <button id="btnTheme" title="切换主题">🌓</button>
+        </div>
+      </div>
     </header>
-    <main class="grid" id="grid"></main>
+    <main>
+      <div id="state"></div>
+      <div class="grid" id="grid"></div>
+      <div class="footer"></div>
+    </main>
   </body>
 </html>
 

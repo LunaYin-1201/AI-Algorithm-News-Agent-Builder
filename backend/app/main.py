@@ -5,6 +5,8 @@ from .config import get_settings
 from .db import create_db_and_tables
 from .routers.health import router as health_router
 from .routers.articles import router as articles_router
+from .routers.papers import router as papers_router
+from .routers.news import router as news_router
 from .scheduler import create_scheduler
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -24,6 +26,8 @@ def create_app() -> FastAPI:
     # Routers
     app.include_router(health_router, prefix="/api")
     app.include_router(articles_router, prefix="/api")
+    app.include_router(papers_router, prefix="/api")
+    app.include_router(news_router, prefix="/api")
 
     # serve frontend from project-level /frontend
     static_dir = Path(__file__).resolve().parents[2] / "frontend"

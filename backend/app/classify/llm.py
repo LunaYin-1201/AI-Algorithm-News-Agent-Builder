@@ -22,7 +22,7 @@ async def _call_chat(prompt: str, timeout: float = 12.0) -> Optional[str]:
     api_key = None
 
     # Choose model: explicit setting > infer from base URL
-    model_name = settings.llm_model or "llama3.1:8b"
+    model_name = settings.llm_model or "qwen2.5:7b"
 
     headers = {"Content-Type": "application/json"}
 

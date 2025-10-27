@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     llm_model: Optional[str] = None  # e.g., "llama3.1:8b"
     max_age_days_default: int = 7
 
+    # Hacker News (Algolia) fetch settings
+    hn_enable: bool = True
+    # Comma-separated query terms; if empty, fall back to defaults in hn_fetcher
+    hn_query_terms: Optional[str] = None
+    hn_min_points: int = 10
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
 
