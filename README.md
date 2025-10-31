@@ -9,18 +9,26 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
+3) Step up ollama env
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama serve
+ollama pull qwen2.5:7b
+ollama run qwen2.5:7b
+```
 
-3) Create `.env` (see below) and run backend
+
+4) Create `.env` (see below) and run backend
 ```bash
 uvicorn backend.app.main:app --reload
 ```
 
-4) (Optional) Run Streamlit UI
+5) Run Streamlit UI
 ```bash
 streamlit run backend/ui_streamlit.py
 ```
 
-- The web frontend is served from the project `frontend/` directory at `/` by FastAPI.
+- (Optional) The web frontend is served from the project `frontend/` directory at `/` by FastAPI.
 
 ## .env example
 
@@ -29,11 +37,11 @@ streamlit run backend/ui_streamlit.py
 DATABASE_URL=sqlite:///./news.db
 
 # Admin token for privileged refresh endpoints (optional). If empty, refresh is open.
-ADMIN_TOKEN=
+ADMIN_TOKEN=ollama
 
 # LLM configuration (Ollama-compatible, default)
 OLLAMA_BASE_URL=http://127.0.0.1:11434/v1
-LLM_MODEL=llama3.1:8b
+LLM_MODEL=qwen2.5:7b
 
 # Relevance filter for ingest (keywords + optional LLM yes/no)
 ENABLE_LLM_FILTER=false

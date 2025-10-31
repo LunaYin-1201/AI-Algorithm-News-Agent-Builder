@@ -27,14 +27,16 @@ def create_db_and_tables() -> None:
 
 def get_session() -> Iterator[Session]:
     engine = get_engine()
-    with Session(engine) as session:
+    # Avoid DetachedInstanceError by keeping attributes after commit
+    with Session(engine, expire_on_commit=False) as session:
         yield session
 
 
 @contextmanager
 def session_context() -> Iterator[Session]:
     engine = get_engine()
-    with Session(engine) as session:
+    # Avoid DetachedInstanceError by keeping attributes after commit
+    with Session(engine, expire_on_commit=False) as session:
         yield session
 
 
