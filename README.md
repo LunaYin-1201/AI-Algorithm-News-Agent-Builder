@@ -93,3 +93,9 @@ Notes
 
 - 端口占用：
   - `lsof -nP -iTCP:8000 | grep LISTEN` 找到进程后 `kill -TERM <PID>`。
+
+## Future
+
+- Push information to WeChat/FeiShu/Telegram
+- Daily Insight
+- more available sources
